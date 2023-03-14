@@ -4,8 +4,37 @@ chatGPTと一緒に作るunlambdaインタプリタ編
 今回もかなりシンプルな難解言語をtypescriptで作っていこうと思います。
 今回は私よりも優秀なchatGPTさんに協力いただいてインタプリタを作っていきます。
 
+#　Unlambdaとは
+```
+h-shimakawa
+unlambdaについて説明をしてください。日本語で１００字以内でお願いします。「チューリング完全」「難解言語」のキーワードは入れて欲しいです。
+```
+```
+chatGPT:
+Unlambdaはチューリング完全なプログラミング言語であり、関数プログラミング言語の一種です。Unlambdaは非常に簡潔で、シンプルな文法を持ち、単純な仕様に基づいて動作します。しかし、その難解な仕様ゆえに、一般的なプログラム言語とは異なる独自の書き方を必要とするため、難解言語として知られています。
+```
+```
+h-shimakawa
+unlambdaの日本語の紹介記事を2つ、unlambdaのオンラインコンパイラを、サイト名とともに紹介してください。
+unlambdaの日本語の紹介記事としては、以下の2つがあります。
+
+```
+```
+chatGPT:
+難解プログラミング言語「unlambda」入門
+（https://qiita.com/1ntegrale9/items/0b7bae8adad170ac4d02）
+unlambdaというプログラミング言語について
+（https://blog.kechako.com/entry/2019/03/28/002728）
+unlambdaのオンラインコンパイラとしては、以下のサイトがあります。
+unlambda interpreter
+（https://tromp.github.io/cl/uni.html）
+
+```
+
+
+
 # パーサジェネレータ
-今回はパーサジェネレータを使います。
+今回のインタプリタ作成ではパーサジェネレータを使います。
 ```
 h-shimakawa:
 パーサジェネレータとは何か説明して欲しいです。日本語の40字以内でお願いします。
@@ -132,8 +161,10 @@ class Application {
 }
 
 export { UnlambdaExpression, UnlambdaFunction, Variable, Application };
-
 ```
+後でわかるのですが、Variableは使われませんでしたね。
+また、UnlambdaFunction.eval()のswitch文は修正しました。
+
 
 # unlambda.tsの作成
 ```
@@ -144,8 +175,6 @@ h-shimakawa:
 chatGPT:
 以下は、Unlambdaの評価器を実装したunlambda.tsの例です。このコードは、入力の文字列をパースして、評価を行います。
 
-typescript
-Copy code
 import { parse } from './unlambda-parser';
 
 function evalUnlambda(input: string, arg: Function): Function {
@@ -166,8 +195,6 @@ h-shimakawa:
 chatGPT:
 以下は、Unlambdaインタプリタのエントリーポイントとなるindex.tsの例です。このコードは、コマンドライン引数からUnlambdaのコードを読み込み、評価を行います。
 
-typescript
-Copy code
 import { evalUnlambda } from './unlambda';
 import * as fs from 'fs';
 
@@ -195,11 +222,69 @@ chatGPT:
 npx pegjs unlambda-parser.peg
 ```
 
+# その他いろいろ聞いたこと
+```
 h-shimakawa:
-
+import { parse } from './unlambda-parser'; について、以下の警告が出ます。適切に型定義する方法はありますか？なお、unlambda-parserの拡張子は.pegです。これまでの会話を踏まえたアドバイスをください。
+```
+```
 chatGPT:
+unlambda-parser.pegを読み込むための型定義ファイルunlambda-parser.d.tsを作成します。内容は以下のようにします。
 
+declare module './unlambda-parser.peg' {
+  export function parse(input: string): any;
+}
+index.tsなどのファイルでparse関数を呼び出すときには、以下のようにimport文を変更します。
 
+import { parse } from './unlambda-parser.peg';
+```
+```
 h-shimakawa:
-
+Typescriptでprocess.argvと fs.readFileSyncを使いたい。必要なnpm installを教えて
+```
+```
 chatGPT:
+npm install --save-dev @types/node
+```
+
+
+```
+h-shimakawa:
+「``skki」をパースすると「[ '`', [ '`', [ '`', 's', 'k' ], 'k' ], 'i' ]」が帰ってきます。
+ですが、type.tsで定義したオブジェクトにどうやって結びつければいいですか？コレまでの会話を踏まえて教えてください。
+```
+```
+chatGPT:
+以下はunlambda-parserから返された配列をtypes.tsで定義した型にマッピングする例です。
+
+import { Expression, Application, UnlambdaFunction, IFunction, KFunction, SFunction } from './types';
+
+export function parseAst(ast: any): Expression {
+  if (Array.isArray(ast)) {
+    switch (ast[0]) {
+      case "`":
+        return new Application(parseAst(ast[1]), parseAst(ast[2]));
+      case "i":
+        return new IFunction();
+      case "k":
+        return new KFunction();
+      case "s":
+        return new SFunction();
+    }
+  }
+
+  throw new Error(`Invalid AST: ${ast}`);
+}
+
+# 実行結果
+分かりにくいですが、「``skk」は「i」に同等なので、「(x) => x」（引数をそのまま返す）が帰ってきていますね。
+成功です。
+```
+node index sample.ul
+CODE= ```skki
+AST= [ '`', [ '`', [ '`', 's', 'k' ], 'k' ], 'i' ]
+AST(mapped)= apply(apply(apply(s, k), k), i)
+RESULT= (x) => x
+```
+
+

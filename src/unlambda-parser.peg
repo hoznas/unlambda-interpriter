@@ -1,0 +1,11 @@
+Start = Expression
+
+Expression
+  = Application
+  / Variable
+
+Application
+  = "`" Expression Expression
+
+Variable
+  = "i" / "k" / "s"

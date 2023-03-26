@@ -2,10 +2,10 @@ Start = Expression
 
 Expression
   = Application
-  / Variable
+  / Function
 
 Application
   = "`" Expression Expression
 
-Variable
+Function
   = "i" / "k" / "s"

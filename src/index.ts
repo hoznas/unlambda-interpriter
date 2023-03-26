@@ -7,10 +7,18 @@ if (process.argv.length < 3) {
 }
 
 const filename = process.argv[2];
+
 const code = fs.readFileSync(filename, 'utf-8');
-const ast1 = evalUnlambda(code);
-const ast2 = parseAst(ast1);
 console.log('CODE=', code);
-console.log('AST=', ast1);
-console.log('AST(mapped)=', ast2.toString());
-console.log('RESULT=', ast2.eval().toString());
+
+const simpleAst = evalUnlambda(code);
+console.log('AST(simple)=', simpleAst);
+
+const mappedAst = parseAst(simpleAst);
+console.log('AST(mapped)=', mappedAst.toString());
+
+const result = mappedAst.eval();
+console.log('RESULT=', result.toString());
+
+const inc = (n: number): number => n + 1;
+console.log('NUMBER=', result(inc)(0));

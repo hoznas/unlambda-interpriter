@@ -1,10 +1,17 @@
+import { Application, Expression, UnlambdaFunction } from './type';
 const { parse } = require('./unlambda-parser');
 
-import { Application, Expression, UnlambdaFunction } from './type';
+export const parseUnlambda = (code: string): Expression => {
+  const simpleAst = parse(code);
 
-export function parseAst(ast: any): Expression {
+  const mappedAst = mapAst(simpleAst);
+
+  return mappedAst;
+};
+
+function mapAst(ast: any): Expression {
   if (Array.isArray(ast) && ast[0] === '`') {
-    return new Application(parseAst(ast[1]), parseAst(ast[2]));
+    return new Application(mapAst(ast[1]), mapAst(ast[2]));
   } else if (ast === 'i') {
     return new UnlambdaFunction('i');
   } else if (ast === 'k') {
@@ -14,10 +21,3 @@ export function parseAst(ast: any): Expression {
   }
   throw new Error(`Invalid AST: ${ast}`);
 }
-
-function evalUnlambda(input: string): Function {
-  const ast = parse(input);
-  return ast;
-}
-
-export { evalUnlambda };

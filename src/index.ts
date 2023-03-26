@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import { evalUnlambda, parseAst } from './unlambda';
+import { parseUnlambda } from './unlambda';
 
 if (process.argv.length < 3) {
   console.error('Usage: node index.js <unlambda file>');
@@ -11,10 +11,7 @@ const filename = process.argv[2];
 const code = fs.readFileSync(filename, 'utf-8');
 console.log('CODE=', code);
 
-const simpleAst = evalUnlambda(code);
-console.log('AST(simple)=', simpleAst);
-
-const mappedAst = parseAst(simpleAst);
+const mappedAst = parseUnlambda(code);
 console.log('AST(mapped)=', mappedAst.toString());
 
 const result = mappedAst.eval();

@@ -12,15 +12,15 @@
 今回は実験的に、私（h-shimakawa）とChatGPTの対話形式で話が進めていきます。
 ChatGPTとの会話はスムーズに進むことの方が少なく、背後に何回かもやり取りを行なっています。
 
+なお、今回はパーサジェネレータ(後述)を使用しますので、Typescript(Javascript)でのコーディングが前提となっています。
+
 ## 今回の言語処理系の対象言語「Unlambda」
 ChatGPTに作ってもらうのはUnlambdaという関数型の難解言語です。
 詳しくは以下のリンクを見てください。
 
-- 難解プログラミング言語「unlambda」入門（https://qiita.com/1ntegrale9/items/0b7bae8adad170ac4d02）
-- unlambdaというプログラミング言語について（https://blog.kechako.com/entry/2019/03/28/002728）
-- unlambda interpreter(オンラインコンパイラ)（https://tromp.github.io/cl/uni.html）
-
-
+- 難解プログラミング言語「unlambda」入門  https://qiita.com/1ntegrale9/items/0b7bae8adad170ac4d02
+- unlambdaというプログラミング言語について  https://blog.kechako.com/entry/2019/03/28/002728
+- unlambda interpreter(オンラインコンパイラ)  https://tromp.github.io/cl/uni.html
 
 
 ## Unlambdaとは
@@ -53,9 +53,6 @@ ChatGPTが生成した表:
 |i	|1つの引数をとり、そのまま返す。	|(a) => a|
 
 
-
-
-
 ## パーサジェネレータ
 今回のインタプリタ作成ではパーサジェネレータを使います。
 >h-shimakawa:<br>
@@ -70,8 +67,7 @@ ChatGPTが生成した表:
 Typescriptで使えるパーサジェネレータを教えて欲しい。あなたがお勧めする中から一番シンプルなものを紹介して。
 
 >ChatGPT:<br>
-TypeScriptで使えるパーサージェネレーターとして、PEG.jsやChevrotainなどがあります。
-
+TypeScriptで使えるパーサージェネレーターとして、PEG.jsやChevrotainなどがあります。<br>
 私のおすすめは、PEG.jsです。PEG.jsはシンプルで使いやすく、文法の記述に正規表現のような簡潔な構文を使用することができます。また、自己再帰的な文法をサポートしており、JavaScriptで実装されているため、WebアプリケーションやNode.jsでの使用に適しています。(以下略)
 
 ## ファイル構成
@@ -92,6 +88,22 @@ TypeScriptとPeg.jsを使用してUnlambdaのインタプリタを作成する�
 └── README.md
 ```
 
+前回のブログでは
+BNF、Tokenizer、Parser、Evaluatorの順にファイルを作ってきましたが、
+今回はファイル分割がぐちゃぐちゃになってしまいました。
+一応関数単位では分かれていますので、以下をご覧ください。
+
+|区分|ファイル|関数|
+|--|--|--|
+|BNF|unlambda-parser.peg|ファイル全体|
+|Tokenizer|unlambda-parser.peg|ファイル全体|
+|Parser|unlambda-parser.peg<br>unlambda.ts|ファイル全体<br>parseAst()|
+|Evaluator|unlambda.ts|evalUnlambda()|
+|型定義|types.ts|ファイル全体|
+|エントリーポイント|index.ts|ファイル全体｜
+
+
+
 ## PEG.jsのインストール
 >h-shimakawa:<br>
 peg.jsをtypescriptで使いたい。peg.jsと型定義ファイルのインストール方法を教えて。なお詳しい説明は要りません。
@@ -104,7 +116,7 @@ npm install @types/pegjs --save-dev<br>
 (以下略)
 
 
-##　文法ファイルの作成
+##　文法ファイルの作成(BNF/Tokenizer/Parser)
 >h-shimakawa:<br>
 このインタプリタで実装するunlambda関数はi,k,sのみです。これまでの会話を踏まえてunlambda-parser.pegを示してください。シンプルな実装を望みます。
 
@@ -123,15 +135,15 @@ Application
 Function
   = "i" / "k" / "s"
 ```
-※ これは文法を定義するファイルで、前回作成したBNFと同じような意味があります。
+※ これは文法を定義するファイルで、前回作成したBNFと同じような意味があります。<br>
 ※ Functionは元々Variable（変数）と書かれていましたが、誤解を避けるために直しています。
 
-## .pegファイルのコンパイル
+### .pegファイルのコンパイル
 
 >h-shimakawa:<br>
 unlambda-parser.pegのコンパイル方法を教えて
 
-ChatGPT:<br>
+>ChatGPT:<br>
 コンパイルコマンドを入力します。以下のコマンドを入力してください。<br>
 <br>
 npx pegjs unlambda-parser.peg
@@ -142,12 +154,10 @@ import { parse } from './unlambda-parser'; について、型定義がないた�
 
 >ChatGPT:<br>
 unlambda-parser.pegを読み込むための型定義ファイルunlambda-parser.d.tsを作成します。内容は以下のようにします。<br>
-<br>
 declare module './unlambda-parser.peg' {<br>
   export function parse(input: string): any;<br>
 }<br>
 index.tsなどのファイルでparse関数を呼び出すときには、以下のようにimport文を変更します。<br>
-<br>
 import { parse } from './unlambda-parser.peg';
 
 
@@ -202,37 +212,7 @@ export { UnlambdaExpression, UnlambdaFunction, Variable, Application };
 
 
 
-
-## Parserへの機能追加
->h-shimakawa:<br>
-「```skki」をパースすると「\[ '\`', \[ '\`', \[ '`', 's', 'k' \], 'k' \], 'i' \]」が帰ってきます。
-ですが、type.tsで定義したオブジェクトにどうやって結びつければいいですか？コレまでの会話を踏まえて教えてください。
-
-ChatGPT:
->以下はunlambda-parserから返された配列をtypes.tsで定義した型にマッピングする例です。
-```
-import { Expression, Application, UnlambdaFunction, IFunction, KFunction, SFunction } from './types';
-
-export function parseAst(ast: any): Expression {
-  if (Array.isArray(ast)) {
-    switch (ast[0]) {
-      case "`":
-        return new Application(parseAst(ast[1]), parseAst(ast[2]));
-      case "i":
-        return new IFunction();
-      case "k":
-        return new KFunction();
-      case "s":
-        return new SFunction();
-    }
-  }
-
-  throw new Error(`Invalid AST: ${ast}`);
-}
-```
-上記のコードはparser.tsに追記しました。
-
-## unlambda.tsの作成
+## unlambda.tsの作成(Parser)
 >h-shimakawa:<br>
 次にunlambda.tsを定義してください。これまでの会話（unlambda-parserおよびtype.tsの実装）を踏まえ、シンプルに実装してください
 
@@ -240,16 +220,31 @@ export function parseAst(ast: any): Expression {
 以下は、Unlambdaの評価器を実装したunlambda.tsの例です。このコードは、入力の文字列をパースして、評価を行います。
 
 ```
-import { parse } from './unlambda-parser';
+import { Application, Expression, UnlambdaFunction } from './type';
+const { parse } = require('./unlambda-parser');
 
-function evalUnlambda(input: string, arg: Function): Function {
-  const ast = parse(input);
-  return ast.eval(arg);
+export const parseUnlambda = (code: string): Expression => {
+  const simpleAst = parse(code);
+
+  const mappedAst = mapAst(simpleAst);
+
+  return mappedAst;
+};
+
+function mapAst(ast: any): Expression {
+  if (Array.isArray(ast) && ast[0] === '`') {
+    return new Application(mapAst(ast[1]), mapAst(ast[2]));
+  } else if (ast === 'i') {
+    return new UnlambdaFunction('i');
+  } else if (ast === 'k') {
+    return new UnlambdaFunction('k');
+  } else if (ast === 's') {
+    return new UnlambdaFunction('s');
+  }
+  throw new Error(`Invalid AST: ${ast}`);
 }
-
-export { evalUnlambda };
 ```
-
+※ ここのコード生成は何回か問い合わせをした上で、コードを自分でまとめる必要がありました。
 
 ## Unlambdaテストコードの作成
 evaluatorに相当するindex.tsを書く前にテストコードを作成します。
@@ -258,23 +253,23 @@ evaluatorに相当するindex.tsを書く前にテストコードを作成しま
 ### チャーチ数
 Unlambdaのテストコードを何回もChatGPTにお願いをしたのですが、
 Unlambdaの文法にさえ合わないコードしか生成できませんでしたので、自分で調べてコードを書く必要がありました。<br>
-そこで、Unlambdaのテストコードはチャーチ数で2 * 3を行いたいと思います。
+そこで、Unlambdaのテストコードはチャーチ数で2 * 3の計算を行いたいと思います。
 
 まずは、再掲となりますが、Math - 言語はどこまで小さくなれるか - (unlambda|iota|jot) のすすめhttps://dankogai.livedoor.blog/archives/51524324.html を参考に、以下のようにチャーチ数を整理しました。
 
 |合成した関数名|Unlambdaコード|対応するJavascriptコード|
 |--|--|--|
-|zero| \`ki          | (_) => iに相当|
+|zero<br>(bottom)| \`ki          | (_) => iに相当|
 |succ| \`s\`\`s\`ksk    | (f)=>(n)=>f(n)に相当|
-|one| \` \`s\`\`s\`ksk \`ki | (f)=>(n)=>f(f(n))に相当 succ(zero)|
-|two| \` \`s\`\`s\`ksk \` \`s\`\`s\`ksk \`ki | (f)=>(n)=>f(f(n))に相当 succ(succ(zero))|
-|three| \` \`s\`\`s\`ksk \` \`s\`\`s\`ksk \` \`s\`\`s\`ksk \`ki | (f)=>(n)=>f(f(f(n)))に相当|
+|one| \` \`s\`\`s\`ksk \`ki | succ(zero)、(f)=>(n)=>f(n)に相当 |
+|two| \` \`s\`\`s\`ksk \` \`s\`\`s\`ksk \`ki | succ(succ(zero))、(f)=>(n)=>f(f(n))に相当 |
+|three| \` \`s\`\`s\`ksk \` \`s\`\`s\`ksk \` \`s\`\`s\`ksk \`ki | succ(succ(succ(zero)))、(f)=>(n)=>f(f(f(n)))に相当|
 |mul| \`\`s\`ksk | (a)=>(b)=>ab 掛け算に相当(abはa*bの結果を表すチャーチ数)|
 
 すると2 * 3は以下のようになります。
 ```
 2 * 3 = mul(two)(three)
-      = mul(inc(inc(zero)))(succ(succ(succ(zero))))
+      = mul(succ(succ(zero)))(succ(succ(succ(zero))))
       = `` mul
              `succ `succ zero
              `succ `succ `succ zero
@@ -304,7 +299,7 @@ peg.jsのところを見て欲しいのですが、空白文字が文法に組�
 
 ```
 import * as fs from 'fs';
-import { evalUnlambda, parseAst } from './unlambda'; // h_shimakawa: parseAstを追記
+import { parseUnlambda } from './unlambda';
 
 if (process.argv.length < 3) {
   console.error('Usage: node index.js <unlambda file>');
@@ -314,18 +309,15 @@ if (process.argv.length < 3) {
 const filename = process.argv[2];
 
 const code = fs.readFileSync(filename, 'utf-8');
-console.log('CODE=', code);                          // h_shimakawa: デバッグプリントを追記（複数）
+console.log('CODE=', code);
 
-const simpleAst = evalUnlambda(code);
-console.log('AST(simple)=', simpleAst);
-
-const mappedAst = parseAst(simpleAst);                // h-shimakawa: parseAstに関する部分を追記
+const mappedAst = parseUnlambda(code);
 console.log('AST(mapped)=', mappedAst.toString());
 
 const result = mappedAst.eval();
 console.log('RESULT=', result.toString());
 
-const inc = (n: number): number => n + 1;               // h-shimakawa: 数値化に関する部分を追記
+const inc = (n: number): number => n + 1;
 console.log('NUMBER=', result(inc)(0));
 ```
 
@@ -335,38 +327,48 @@ console.log('NUMBER=', result(inc)(0));
 掛け算を実行した計算結果(6)がチャーチ数として返ってきます。
 
 6に相当するチャーチ数は、(f)=>(n)=>f(f(f(f(f(f(n))))))に相当するコードになっているはずです。
+このとき、fにincを、nに0を与えるとどうなるでしょうか？
 
-f=incとn=0を渡すことでinc(inc(inc(inc(inc(inc(0))))))、0+1+1+1+1+1+1、6となるはずですよね！
+```
+six = (f)=>(n)=>f(f(f(f(f(f(n))))))
+inc = (n)=>n+1
 
-
+six(inc)(0) = ((f)=>(n)=>f(f(f(f(f(f(n)))))))(inc)(0)   // sixを展開
+            = ((n)=>inc(inc(inc(inc(inc(inc(n)))))))(0) // fにincを適用
+            = ((n)=>n+1+1+1+1+1+1)(0)                   // incを展開
+            = 0+1+1+1+1+1+1                             // nに0を適用
+            = 6
+```
 
 
 # 実行
 
 ```
-$npm install --save-dev @types/node # process.argvとfs.readFileSyncのため
-$npx pegjs unlambda-parser.peg # .pegのコンパイル
-$tsc
-$node index sample.ul
+$ npm install --save-dev @types/node # process.argvとfs.readFileSyncのため
+$ npx pegjs unlambda-parser.peg # .pegのコンパイル
+$ tsc
+$ node index sample.ul
 CODE= ````s`ksk``s``s`ksk``s``s`ksk`ki``s``s`ksk``s``s`ksk``s``s`ksk`ki
-AST(simple)= [
-  '`',
-  [ '`', [ '`', [Array], 'k' ], [ '`', [Array], [Array] ] ],
-  [ '`', [ '`', 's', [Array] ], [ '`', [Array], [Array] ] ]
-]
 AST(mapped)= apply(apply(apply(apply(s, apply(k, s)), k), apply(apply(s, apply(apply(s, apply(k, s)), k)), apply(apply(s, apply(apply(s, apply(k, s)), k)), apply(k, i)))), apply(apply(s, apply(apply(s, apply(k, s)), k)), apply(apply(s, apply(apply(s, apply(k, s)), k)), apply(apply(s, apply(apply(s, apply(k, s)), k)), apply(k, i)))))
 RESULT= (z) => x(z)(y(z))
 NUMBER= 6
-
 ```
-RESULTの行がs関数の中に隠れてしまって、なんだか分からなくなってしまっていますが、
-ちゃんとNUMBERに6が帰ってきていますね。
+RESULTの出力がs関数の中に隠れてしまって、なんだか分からなくなってしまっていますが、
+ちゃんとNUMBERに6が表示されていますね。
 大成功です！
 
 
 ## Unlambdaインタプリタを作ってみて
-Unlambdaは、前回のBrainf*ckよりもさらに命令数が少ない言語ですが、どちらもチューリング完全な能力を持っています。
-自分でUnlambdaのプログラミングできなくても、言語仕様が分かればインタプリタを作ることができます。
+- Unlambdaは、前回のBrainf*ckよりもさらに命令数が少ない言語ですが、どちらもチューリング完全な能力を持っています。
+- 自分でUnlambdaのプログラミングできなくても、言語仕様が分かればインタプリタを作ることができます。
+- PEG.jsのようなパーサジェネレータを使えばBNFのような文法ファイルを作成するだけでTokenizerやParserの機能を自動で生成してくれます。
+
+## ChatGPTについて
+- 今回はChatGPTをフルに使ってコードを書きました。
+- ChatGPTによる
+
+
+
 
 
 

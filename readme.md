@@ -24,14 +24,14 @@ ChatGPTに作ってもらうのはUnlambdaという関数型の難解言語で�
 
 
 ## Unlambdaとは
-```
-h-shimakawa
+
+>h-shimakawa:<br>
 unlambdaについて説明をしてください。日本語で１００字以内でお願いします。「チューリング完全」「難解言語」のキーワードは入れて欲しいです。
-```
-```
-ChatGPT:
+
+
+>ChatGPT:<br>
 Unlambdaはチューリング完全なプログラミング言語であり、関数プログラミング言語の一種です。Unlambdaは非常に簡潔で、シンプルな文法を持ち、単純な仕様に基づいて動作します。しかし、その難解な仕様ゆえに、一般的なプログラム言語とは異なる独自の書き方を必要とするため、難解言語として知られています。
-```
+
 
 #### 補足：
 正直難しすぎて、私にとってもUnlambdaはワケわからんな言語です。
@@ -41,14 +41,11 @@ Unlambdaはチューリング完全なプログラミング言語であり、関
 ラムダ計算を知っている人であれば、以下のリンクを読むとわかるかもしれません。
 - Math - 言語はどこまで小さくなれるか - (unlambda|iota|jot) のすすめ https://dankogai.livedoor.blog/archives/51524324.html
 
-## 今回実装する関数
-```
-h-shimakawa
+## 今回実装する機能
+>h-shimakawa:<br>
 unlambdaのs,k,i関数のみを３カラムの表形式で示して。表は関数名、関数の働き、対応するjavascriptコードの３カラムとし、markdown形式で表示して。スタックという表現をせず、引数という言葉で説明をすること。
-```
 
 ChatGPTが生成した表:
-
 |関数名|働き|JavaScriptコード|
 |--|--|--
 |s	|引数に関数を３つとり、2つ目と3つ目の引数を入れ替えた後、1つ目の引数を適用する。|	(a) => (b) => (c) => a(c)(b(c))|
@@ -61,36 +58,29 @@ ChatGPTが生成した表:
 
 ## パーサジェネレータ
 今回のインタプリタ作成ではパーサジェネレータを使います。
-```
-h-shimakawa:
+>h-shimakawa:<br>
 パーサジェネレータとは何か説明して欲しいです。日本語の40字以内でお願いします。
-```
-```
-ChatGPT:
+
+>ChatGPT:<br>
 インタプリタを作成する際に必要なプログラムで、テキストを解析するプログラムのことです。プログラムには、与えられた文法に従ってテキストを解析し、それに基づいてプログラムを実行する機能が含まれます。これにより、プログラム開発者は、独自のプログラミング言語を開発し、簡単かつ正確にテキストを解析し、処理することができます。
-```
 
 ## パーサジェネレータの選定
-```
-h-shimakawa:
+
+>h-shimakawa:<br>
 Typescriptで使えるパーサジェネレータを教えて欲しい。あなたがお勧めする中から一番シンプルなものを紹介して。
-```
-```
-ChatGPT:
+
+>ChatGPT:<br>
 TypeScriptで使えるパーサージェネレーターとして、PEG.jsやChevrotainなどがあります。
 
 私のおすすめは、PEG.jsです。PEG.jsはシンプルで使いやすく、文法の記述に正規表現のような簡潔な構文を使用することができます。また、自己再帰的な文法をサポートしており、JavaScriptで実装されているため、WebアプリケーションやNode.jsでの使用に適しています。(以下略)
-```
 
 ## ファイル構成
-```
-h-shimakawa:
+>h-shimakawa:<br>
 typescriptとpeg.jsを使ってunlambdaのインタプリタを作りたい。ファイル構成はどうなる？
-```
-```
-ChatGPT:
-TypeScriptとPeg.jsを使用してUnlambdaのインタプリタを作成するための基本的なファイル構成は以下のようになります。
 
+>ChatGPT:<br>
+TypeScriptとPeg.jsを使用してUnlambdaのインタプリタを作成するための基本的なファイル構成は以下のようになります。
+```
 /
 ├── src/
 │   ├── index.ts              // アプリケーションのエントリーポイント
@@ -103,28 +93,24 @@ TypeScriptとPeg.jsを使用してUnlambdaのインタプリタを作成する�
 ```
 
 ## PEG.jsのインストール
-```
-h-shimakawa:
+>h-shimakawa:<br>
 peg.jsをtypescriptで使いたい。peg.jsと型定義ファイルのインストール方法を教えて。なお詳しい説明は要りません。
-```
-```
-ChatGPT:
-まず、peg.jsをインストールするには、次のコマンドを実行します。
-npm install pegjs
-次に、型定義ファイルをインストールするには、次のコマンドを実行します。
-npm install @types/pegjs --save-dev
+
+>ChatGPT:<br>
+まず、peg.jsをインストールするには、次のコマンドを実行します。<br>
+npm install pegjs<br>
+次に、型定義ファイルをインストールするには、次のコマンドを実行します。<br>
+npm install @types/pegjs --save-dev<br>
 (以下略)
-```
+
 
 ##　文法ファイルの作成
-```
-h-shimakawa:
+>h-shimakawa:<br>
 このインタプリタで実装するunlambda関数はi,k,sのみです。これまでの会話を踏まえてunlambda-parser.pegを示してください。シンプルな実装を望みます。
-```
-```
-ChatGPT:
-以下は、Unlambdaの関数i,k,sのみをサポートする、比較的シンプルなUnlambdaパーサーの例です。このパーサーは、Unlambdaコードをトークンに分割し、AST（抽象構文木）を生成します。このASTは、Unlambdaコードを実行するためにUnlambdaインタプリタに渡されます。
 
+>ChatGPT:<br>
+以下は、Unlambdaの関数i,k,sのみをサポートする、比較的シンプルなUnlambdaパーサーの例です。このパーサーは、Unlambdaコードをトークンに分割し、AST（抽象構文木）を生成します。このASTは、Unlambdaコードを実行するためにUnlambdaインタプリタに渡されます。
+```
 Start = Expression
 
 Expression
@@ -137,45 +123,40 @@ Application
 Function
   = "i" / "k" / "s"
 ```
-※ これは前回作成したBNFと同じような記法で文法を定義するファイルです。
+※ これは文法を定義するファイルで、前回作成したBNFと同じような意味があります。
 ※ Functionは元々Variable（変数）と書かれていましたが、誤解を避けるために直しています。
 
 ## .pegファイルのコンパイル
-```
-h-shimakawa:
+
+>h-shimakawa:<br>
 unlambda-parser.pegのコンパイル方法を教えて
-```
-```
-ChatGPT:
-コンパイルコマンドを入力します。以下のコマンドを入力してください。
 
+ChatGPT:<br>
+コンパイルコマンドを入力します。以下のコマンドを入力してください。<br>
+<br>
 npx pegjs unlambda-parser.peg
-```
 
-```
-h-shimakawa:
+
+>h-shimakawa:<br>
 import { parse } from './unlambda-parser'; について、型定義がないため警告が出ます。適切に型定義する方法はありますか？なお、unlambda-parserの拡張子は.pegです。これまでの会話を踏まえたアドバイスをください。
-```
 
-```
-ChatGPT:
-unlambda-parser.pegを読み込むための型定義ファイルunlambda-parser.d.tsを作成します。内容は以下のようにします。
-
-declare module './unlambda-parser.peg' {
-  export function parse(input: string): any;
-}
-index.tsなどのファイルでparse関数を呼び出すときには、以下のようにimport文を変更します。
-
+>ChatGPT:<br>
+unlambda-parser.pegを読み込むための型定義ファイルunlambda-parser.d.tsを作成します。内容は以下のようにします。<br>
+<br>
+declare module './unlambda-parser.peg' {<br>
+  export function parse(input: string): any;<br>
+}<br>
+index.tsなどのファイルでparse関数を呼び出すときには、以下のようにimport文を変更します。<br>
+<br>
 import { parse } from './unlambda-parser.peg';
-```
+
 
 ## unlambdaのオブジェクトの定義
-```
-h-shimakawa:
+>h-shimakawa:<br>
 これまでの会話に基づき次にtypes.tsを示してください。繰り返しますが、s,k,iの３関数だけ実装してください。シンプルにお願いします。なお、基本的にs,k,i,`はclassで定義してください。４つのclassにはeval()を実装してください（宣言だけでなく実装してください）
+
+ChatGPTの生成したコード
 ```
-```
-ChatGPT:
 type UnlambdaExpression = UnlambdaFunction | Variable | Application;
 
 class UnlambdaFunction {
@@ -223,15 +204,13 @@ export { UnlambdaExpression, UnlambdaFunction, Variable, Application };
 
 
 ## Parserへの機能追加
-```
-h-shimakawa:
-「```skki」をパースすると「[ '`', [ '`', [ '`', 's', 'k' ], 'k' ], 'i' ]」が帰ってきます。
+>h-shimakawa:<br>
+「```skki」をパースすると「\[ '\`', \[ '\`', \[ '`', 's', 'k' \], 'k' \], 'i' \]」が帰ってきます。
 ですが、type.tsで定義したオブジェクトにどうやって結びつければいいですか？コレまでの会話を踏まえて教えてください。
-```
-```
-ChatGPT:
-以下はunlambda-parserから返された配列をtypes.tsで定義した型にマッピングする例です。
 
+ChatGPT:
+>以下はunlambda-parserから返された配列をtypes.tsで定義した型にマッピングする例です。
+```
 import { Expression, Application, UnlambdaFunction, IFunction, KFunction, SFunction } from './types';
 
 export function parseAst(ast: any): Expression {
@@ -254,14 +233,13 @@ export function parseAst(ast: any): Expression {
 上記のコードはparser.tsに追記しました。
 
 ## unlambda.tsの作成
-```
-h-shimakawa:
+>h-shimakawa:<br>
 次にunlambda.tsを定義してください。これまでの会話（unlambda-parserおよびtype.tsの実装）を踏まえ、シンプルに実装してください
-```
-```
-ChatGPT:
+
+>ChatGPT:<br>
 以下は、Unlambdaの評価器を実装したunlambda.tsの例です。このコードは、入力の文字列をパースして、評価を行います。
 
+```
 import { parse } from './unlambda-parser';
 
 function evalUnlambda(input: string, arg: Function): Function {
@@ -275,15 +253,14 @@ export { evalUnlambda };
 
 ## Unlambdaテストコードの作成
 evaluatorに相当するindex.tsを書く前にテストコードを作成します。
-テストコードを先に書いた方が、メイン処理がかんたんになります。
+テストコードを先に書いた方が、メイン処理の理解がいくらか簡単になります。
 
 ### チャーチ数
 Unlambdaのテストコードを何回もChatGPTにお願いをしたのですが、
-Unlambdaの文法にさえ合わないコードしか生成できませんでしたので、自分で調べてコードを書く必要がありました。
-
+Unlambdaの文法にさえ合わないコードしか生成できませんでしたので、自分で調べてコードを書く必要がありました。<br>
 そこで、Unlambdaのテストコードはチャーチ数で2 * 3を行いたいと思います。
 
-まずは、再掲となりますが、Math - 言語はどこまで小さくなれるか - (unlambda|iota|jot) のすすめhttps://dankogai.livedoor.blog/archives/51524324.html　を参考に、以下のようにチャーチ数を整理しました。
+まずは、再掲となりますが、Math - 言語はどこまで小さくなれるか - (unlambda|iota|jot) のすすめhttps://dankogai.livedoor.blog/archives/51524324.html を参考に、以下のようにチャーチ数を整理しました。
 
 |合成した関数名|Unlambdaコード|対応するJavascriptコード|
 |--|--|--|
@@ -308,8 +285,7 @@ Unlambdaの文法にさえ合わないコードしか生成できませんでし
 ```
 なので、テストコードは以下のようになります。sample.ulとして保存してください。
 
-一つ注意点があります。
-
+一つ注意点があります。<br>
 peg.jsのところを見て欲しいのですが、空白文字が文法に組み込まれていません。
 ですので本プログラムは一切のスペース、タブ、改行を許容しませんので、サンプルコードを保存するときは気をつけてください。
 もちろん、間違って空白文字やその他の文字を含んだときは文法エラーが表示されるはずです。
@@ -320,14 +296,13 @@ peg.jsのところを見て欲しいのですが、空白文字が文法に組�
 
 
 # index.tsの作成
-```
-h-shimakawa:
+>h-shimakawa:<br>
 では、これまでの実装を踏まえてシンプルにindex.tsを示してください
-```
-```
-ChatGPT:
+
+>ChatGPT:<br>
 以下は、Unlambdaインタプリタのエントリーポイントとなるindex.tsの例です。このコードは、コマンドライン引数からUnlambdaのコードを読み込み、評価を行います。
 
+```
 import * as fs from 'fs';
 import { evalUnlambda, parseAst } from './unlambda'; // h_shimakawa: parseAstを追記
 

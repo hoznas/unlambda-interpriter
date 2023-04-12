@@ -1,0 +1,20 @@
+{
+  "name": "unlambda-interpriter",
+  "version": "1.0.0",
+  "description": "## 今回の方針 今回のブログでは最近流行りのChatGPTを使って言語処理系を作っていこうと思います。 ソースコードもブログ原稿もなるべくChatGPTを使って描いていこうと思います。",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hoznas/unlambda-interpriter.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/hoznas/unlambda-interpriter/issues"
+  },
+  "homepage": "https://github.com/hoznas/unlambda-interpriter#readme"
+}

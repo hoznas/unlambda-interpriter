@@ -4,7 +4,8 @@
   "description": "## 今回の方針 今回のブログでは最近流行りのChatGPTを使って言語処理系を作っていこうと思います。 ソースコードもブログ原稿もなるべくChatGPTを使って描いていこうと思います。",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build":"tsc "
   },
   "repository": {
     "type": "git",
